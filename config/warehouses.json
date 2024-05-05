@@ -1,0 +1,12 @@
+[
+  {
+    "name": "Központi raktár",
+    "address": "Budapest",
+    "capacity": 10
+  },
+  {
+    "name": "Vidéki raktár",
+    "address": "Szeged",
+    "capacity": 20
+  }
+]

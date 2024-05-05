@@ -1,0 +1,14 @@
+[
+  {
+    "brandName": "Adidas",
+    "qualityClass": 2
+  },
+  {
+    "brandName": "Nike",
+    "qualityClass": 3
+  },
+  {
+    "brandName": "Danone",
+    "qualityClass": 4
+  }
+]
