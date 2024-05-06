@@ -11,7 +11,7 @@ class Warehouse
     private int $capacity;
 
     /** @var Product[] */
-    private array $products;
+    private array $products = [];
 
     public function __construct(
         string $name,
@@ -66,7 +66,9 @@ class Warehouse
         }
     }
 
-    /** @return Product[] */
+    /**
+     * @return Product[]
+     */
     public function getAllProducts(): array
     {
         return $this->products;

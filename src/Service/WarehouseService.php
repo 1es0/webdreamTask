@@ -3,46 +3,25 @@
 namespace LesoWarehouseSystem\Service;
 
 use LesoWarehouseSystem\Exception\AllWareHousesFullException;
+use LesoWarehouseSystem\Exception\TooFewProductsException;
 use LesoWarehouseSystem\Exception\WareHouseFullException;
-use LesoWarehouseSystem\Factory\WarehouseFactory;
 use LesoWarehouseSystem\Model\Product;
 use LesoWarehouseSystem\Model\Warehouse;
-use LesoWarehouseSystem\Repository\WarehouseRepository;
+
 
 class WarehouseService
 {
-    private WarehouseRepository $warehouseRepository;
-    private WarehouseFactory $warehouseFactory;
-
-    public function __construct(
-        WarehouseRepository $warehouseRepository,
-        WarehouseFactory $warehouseFactory
-    ) {
-        $this->warehouseRepository = $warehouseRepository;
-        $this->warehouseFactory = $warehouseFactory;
-    }
-
-    public function createWarehouse(
-        string $name,
-        string $address,
-        int $capacity
-    ): Warehouse {
-        $warehouse = $this->warehouseFactory->create(
-            $name,
-            $address,
-            $capacity
-        );
-
-        $this->warehouseRepository->save($warehouse);
-    }
-
-    public function listAllItemsFromAllWarehouses(): array
-    {
-        $warehouses = $this->warehouseRepository->findAll();
+    /**
+     * @param Warehouse[] $warehouses
+     * @return Product[]
+     */
+    public function listAllItemsFromAllWarehouses(
+        array $warehouses
+    ): array {
         $items = [];
 
         foreach ($warehouses as $warehouse) {
-            $items[] = $warehouse->getAllProducts();
+            $items = array_merge($items, $warehouse->getAllProducts());
         }
 
         return $items;
@@ -50,12 +29,13 @@ class WarehouseService
 
     /**
      * @param array $products
+     * @param Warehouse[] $warehouses
      * @throws AllWareHousesFullException
      */
-    public function addProductsToWarehouses(array $products): bool
-    {
-        $warehouses = $this->warehouseRepository->findAll();
-
+    public function addProductsToWarehouses(
+        array $products,
+        array $warehouses
+    ): void {
         foreach ($products as $product) {
             $this->addOneProductToAvailableWarehouse(
                 $product,
@@ -64,10 +44,15 @@ class WarehouseService
         }
     }
 
-    public function removeProductsFromWarehouses(array $products): bool
-    {
-        $warehouses = $this->warehouseRepository->findAll();
-
+    /**
+     * @param Warehouse[] $warehouses
+     * @param Product[] $products
+     * @throws TooFewProductsException
+     */
+    public function removeProductsFromWarehouses(
+        array $products,
+        array $warehouses
+    ): void {
         foreach ($products as $product) {
             $this->removeOneProductFromAvailableWarehouse(
                 $product,
@@ -90,16 +75,21 @@ class WarehouseService
 
                 return;
             } catch (WareHouseFullException) {
-                break;
+                continue;
             }
         }
 
         throw new AllWareHousesFullException();
     }
 
-    /** @param  Warehouse[] $warehouses */
-    private function removeOneProductFromAvailableWarehouse(Product $product, array $warehouses): bool
-    {
+    /**
+     * @param Warehouse[] $warehouses
+     * @throws TooFewProductsException
+     */
+    private function removeOneProductFromAvailableWarehouse(
+        Product $product,
+        array $warehouses
+    ): void {
         foreach ($warehouses as $warehouse) {
             $warehouseProducts = $warehouse->getAllProducts();
 
@@ -107,11 +97,11 @@ class WarehouseService
                 if ($product->getItemNumber() === $warehouseProduct->getItemNumber()) {
                     $warehouse->removeItem($warehouseProduct);
 
-                    return true;
+                    return;
                 }
             }
         }
 
-        return false;
+        throw new TooFewProductsException();
     }
 }
